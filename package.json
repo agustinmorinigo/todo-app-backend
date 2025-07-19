@@ -10,15 +10,25 @@
     "biome": "bunx biome check --write",
     "lint": "bunx --bun biome lint",
     "typecheck": "tsc --noEmit",
-    "prepare": "husky"
+    "prepare": "husky",
+    "commit": "bunx commitizen"
   },
   "devDependencies": {
     "@biomejs/biome": "2.1.2",
+    "@commitlint/config-conventional": "^19.8.1",
+    "@commitlint/cz-commitlint": "^19.8.1",
     "@types/bun": "latest",
+    "commitizen": "^4.3.1",
+    "commitlint": "^19.8.1",
     "husky": "^9.1.7",
     "lint-staged": "^16.1.2"
   },
   "peerDependencies": {
     "typescript": "^5"
+  },
+  "config": {
+    "commitizen": {
+      "path": "@commitlint/cz-commitlint"
+    }
   }
 }

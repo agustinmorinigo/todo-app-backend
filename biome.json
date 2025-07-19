@@ -17,6 +17,8 @@
 			"test/**/*.jsx",
 			"test/**/*.tsx",
 			"!**/*.min.js",
+			"!./*.config.js",
+			"!./*.config.mjs",
 			"./index.ts"
 		]
 	},

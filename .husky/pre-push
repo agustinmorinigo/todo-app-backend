@@ -1,9 +1,9 @@
 # typecheck
-echo "🔍 Verificando tipos con TypeScript..."
+echo "🔍 Running TypeScript type check..."
 bun run typecheck
-echo "✅ Tipos válidos"
+echo "✅ Type check passed."
 
 # lint-staged
-echo "🔧 Linteando y Formateando archivos modificados..."
+echo "🔧 Linting and formatting staged files..."
 bunx lint-staged
-echo "✅ Formateo terminado."
+echo "✅ Formatting complete."

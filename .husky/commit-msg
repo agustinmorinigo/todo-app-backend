@@ -1,0 +1,3 @@
+echo "🔍 Verifying commit message..."
+bunx commitlint --edit $1
+echo "✅ Commit message is valid."
