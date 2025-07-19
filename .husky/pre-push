@@ -1,0 +1,9 @@
+# typecheck
+echo "🔍 Verificando tipos con TypeScript..."
+bun run typecheck
+echo "✅ Tipos válidos"
+
+# lint-staged
+echo "🔧 Linteando y Formateando archivos modificados..."
+bunx lint-staged
+echo "✅ Formateo terminado."
