@@ -4,9 +4,9 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "start": "bun run index.ts",
-    "dev": "bun --watch index.ts",
-    "build": "bun build ./index.ts --outdir ./dist --minify",
+    "start": "bun run ./dist/index.js",
+    "dev": "bun --watch ./src/index.ts",
+    "build": "bun build ./src/index.ts --outdir ./dist --minify",
     "biome": "bunx biome check --write",
     "lint": "bunx --bun biome lint",
     "typecheck": "tsc --noEmit",

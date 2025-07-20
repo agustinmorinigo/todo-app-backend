@@ -1,5 +1,5 @@
 Bun.serve({
-	port: 3001,
+	port: 3000,
 	routes: {
 		'/auth': () => {
 			return Response.json('HOLAAAAAAA AUTH.');
