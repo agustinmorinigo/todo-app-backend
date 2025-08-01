@@ -8,52 +8,145 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+
 // "users" table.
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique @db.VarChar(150)
-  name      String   @db.VarChar(100)
+  id              String        @id @default(uuid())
+  name            String        @db.VarChar(80)
+  lastName        String        @db.VarChar(80)
+  documentType    DocumentType  @default(DNI)
+  documentValue   String        @db.VarChar(30)
+  email           String        @unique @db.VarChar(150)
+  telephone       String        @db.VarChar(30)
+  role            UserRole
+
+  // relations
+  organizations   UserOrganization[]
 
   @@map("users")
 }
 
-// "expenses" table.
-model Expense {
-  id        String          @id @default(uuid())
-  link      String          @db.VarChar(250)
-  date      DateTime
-  status    ExpenseStatus   @default(PENDING)
-  createdBy String
-  updatedBy String
-  createdAt DateTime        @default(now())
-  updatedAt DateTime
+enum UserRole {
+  ADMIN
+  ACCOUNTANT
+  CLERK
+  DOCTOR
+  PATIENT
+}
+
+enum DocumentType {
+  DNI
+  LE
+  LC
+  CI
+  PASSPORT
+  OTHER
+}
+
+
+// "organizations" table.
+model Organization {
+  id              String        @id @default(uuid())
+  legalName       String        @unique @db.VarChar(80)
+  businessName    String        @db.VarChar(80)
+  address         String        @db.VarChar(180)
+  vatCategoryId   Int
+  cuit            String        @db.VarChar(20)
 
   // relations
-  expenseCategoryId Int
-  category  ExpenseCategory @relation(fields: [expenseCategoryId], references: [id])
+  vatCategory     VatCategory   @relation(fields: [vatCategoryId], references: [id])
+  users           UserOrganization[]
+  expenses        Expense[]
+  
+  @@map("organizations")
+}
 
-  expenseItems ExpenseItem[]
+
+// "vatCategories" table.
+model VatCategory {
+  id    Int             @id @default(autoincrement())
+  type  VatCategoryType
+  name  String          @db.VarChar(100) 
+
+  // relations
+  organizations Organization[]
+
+  @@unique([type, name])
+  @@map("vatCategories")
+}
+
+enum VatCategoryType {
+  REGISTERED_RESPONSIBLE
+  MONOTAX
+  EXEMPT
+  NOT_RESPONSIBLE
+  FINAL_CONSUMER
+  UNCATEGORIZED_SUBJECT
+  UNREGISTERED_RESPONSIBLE
+  SUBJECT_TO_VAT_WITHHOLDING
+  NOT_SUBJECT_TO_VAT
+  REGISTERED_RESPONSIBLE_M
+}
+
+
+// "usersOrganizations" table.
+model UserOrganization {
+  userId          String
+  organizationId  String
+
+  // relations
+  user            User          @relation(fields: [userId], references: [id])
+  organization    Organization  @relation(fields: [organizationId], references: [id])
+
+  @@id([userId, organizationId])
+  @@map("usersOrganizations")
+}
+
+
+// // "expenses" table.
+model Expense {
+  id                  String          @id @default(uuid())
+  organizationId      String
+  categoryId          Int
+  status              ExpenseStatus
+  title               String          @db.VarChar(100)
+  description         String?         @db.VarChar(250)
+  amount              Decimal         @db.Decimal(12, 2)
+  paymentMethodId     Int?
+  datePaid            DateTime?
+  invoiceLink         String         @db.VarChar(250)
+  paymentReceiptLink  String? @db.VarChar(250)
+  expirationDate      DateTime
+  createdBy           String
+  updatedBy           String?
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime?
+
+  // relations
+  organization       Organization    @relation(fields: [organizationId], references: [id])
+  category           ExpenseCategory @relation(fields: [categoryId], references: [id])
+  paymentMethod      PaymentMethod?  @relation(fields: [paymentMethodId], references: [id])
 
   @@map("expenses")
 }
 
 enum ExpenseStatus {
-  PENDING
   PAID
-  CANCELLED
+  PENDING
 }
 
-// "expense_categories" table.
+
+// "expenseCategories" table.
 model ExpenseCategory {
   id    Int                 @id @default(autoincrement())
   type  ExpenseCategoryType
   name  String              @db.VarChar(100)
 
   // relations
-  expenses Expense[]
+  expenses  Expense[]
 
   @@unique([type, name])
-  @@map("expense_categories")
+  @@map("expenseCategories")
 }
 
 enum ExpenseCategoryType {
@@ -72,96 +165,26 @@ enum ExpenseCategoryType {
   CAPTURE
 }
 
-// "expense_items" table.
-model ExpenseItem {
-  id          String   @id @default(uuid())
-  unitPrice   Decimal  @db.Decimal(12, 2)
-  quantity    Int // Should be more than 0. Validate in the code.
-  description String?  @db.VarChar(250)
 
-  // one of productId or serviceId must be valid, but not both.
-  // both cannot be null at the same time. Validate in the code.
-  // relations
-  productId   Int?
-  product     Product? @relation(fields: [productId], references: [id])
-
-  serviceId   Int?
-  service     Service? @relation(fields: [serviceId], references: [id])
-
-  expenseId   String
-  expense     Expense @relation(fields: [expenseId], references: [id])
-
-  @@map("expense_items")
-}
-
-// "products" table.
-model Product {
-  id    Int     @id @default(autoincrement())
-  name  String  @db.VarChar(100)
+// "paymentMethods" table.
+model PaymentMethod {
+  id    Int                 @id @default(autoincrement())
+  type  PaymentMethodType
+  name  String              @db.VarChar(100)
 
   // relations
-  expenseItems ExpenseItem[]
-
-  @@map("products")
-}
-
-// "services" table.
-model Service {
-  id            Int       @id @default(autoincrement())
-  name          String    @db.VarChar(100)
-  entryDate     DateTime
-  expiryDate    DateTime
-  // categoryId // FK a tabla que no existe, "ServiceCategory" table.
-
-  // relations
-  expenseItems  ExpenseItem[]
-  providerId    Int
-  provider      Provider @relation(fields: [providerId], references: [id])
-  
-  @@map("services")
-}
-
-// "providers" table.
-model Provider {
-  id            Int     @id @default(autoincrement())
-  legalName     String  @db.VarChar(150)
-  businessName  String  @db.VarChar(150)
-  cuit          String  @db.VarChar(80)
-  email         String? @db.VarChar(150)
-  telephone     String  @db.VarChar(50)
-  address       String  @db.VarChar(150)
-
-  // relations
-  vatCategoryId Int
-  vatCategory   VatCategory @relation(fields: [vatCategoryId], references: [id])
-  services      Service[]
-
-  @@unique([cuit, email])
-  @@map("providers")
-}
-
-// "vat_categories" table.
-model VatCategory {
-  id    Int             @id @default(autoincrement())
-  type  VatCategoryType
-  name  String          @db.VarChar(100) 
-
-  // relations
-  providers Provider[]
+  expenses  Expense[]
 
   @@unique([type, name])
-  @@map("vat_categories")
+  @@map("paymentMethods")
 }
 
-enum VatCategoryType {
-  REGISTERED_RESPONSIBLE
-  MONOTAX
-  EXEMPT
-  NOT_RESPONSIBLE
-  FINAL_CONSUMER
-  UNCATEGORIZED_SUBJECT
-  UNREGISTERED_RESPONSIBLE
-  SUBJECT_TO_VAT_WITHHOLDING
-  NOT_SUBJECT_TO_VAT
-  REGISTERED_RESPONSIBLE_M
+enum PaymentMethodType {
+  CASH
+  BNA
+  MP
+  GALICIA
+  BBVA
+  UALA
+  BRUBANK
 }
