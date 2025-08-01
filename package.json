@@ -11,7 +11,8 @@
     "lint": "bunx --bun biome lint",
     "typecheck": "tsc --noEmit",
     "prepare": "husky",
-    "commit": "bunx commitizen"
+    "commit": "bunx commitizen",
+    "seed": "bunx prisma db seed"
   },
   "devDependencies": {
     "@biomejs/biome": "2.1.2",
@@ -34,5 +35,8 @@
   },
   "dependencies": {
     "@prisma/client": "^6.12.0"
+  },
+  "prisma": {
+    "seed": "bun ./prisma/seed.ts"
   }
 }
